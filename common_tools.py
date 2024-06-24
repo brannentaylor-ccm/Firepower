@@ -17,6 +17,9 @@ import socket
 from datetime import datetime
 from pprint import pprint
 
+def checkFileExists(fileName:str) -> bool:
+    """Check for the existence of a file."""
+    return os.path.exists(fileName)
 
 def start_logging(filename='log.log', level_:str="DEBUG"):
     """Configures logging
