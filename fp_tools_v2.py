@@ -2,6 +2,13 @@
 """Firepower tools - create basic auth, get a token from the FMC.
 
 Brannen Taylor - 20240624
+
+NOTE:  To retrieve credentials securely, you must store them in an .env file.  In the format:
+fmc_user = SVC.CiscoAuto
+fmc_password = XXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+These creds are stored in Keeper.  They are in AD, but configured as local authentication on the FMC.
+
 """
 
 import logging
