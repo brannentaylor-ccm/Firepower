@@ -139,7 +139,7 @@ def get_domainid(token):
     information about a specific object, the URI will end with the object UUID.
     """
     logging.info(f'Entered')
-    logging.info(f'{token.status.code=}')
+    logging.info(f'{token.status_code=}')
     if token.status_code == 204:
         # print(f"Token response is 204")
         domain_uuid = token.headers.get('DOMAIN_UUID')
