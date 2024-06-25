@@ -78,6 +78,8 @@ def make_api_call(url, auth, headers, payload, method="GET"):
         code = 503
         return_dict = {'Code':code, 'MSG':msg}
         logging.error(f'Returning {return_dict}')
+        logging.error(f'Error: {e}')
+        print(e)
         return return_dict
     
 def load_credentials():
@@ -94,6 +96,7 @@ def load_credentials():
         code = 503
         return_dict = {'Code':code, 'MSG':msg}
         logging.error(f'Returning {return_dict}')
+        logging.error(f'Error: {e}')
         print(f"Error: {e}")
         return return_dict
         
@@ -101,28 +104,62 @@ def load_credentials():
 def get_token():
     """Make an API call to Firepower to get a token"""
     logging.info(f'Entered')
+
     api_path = '/auth/generatetoken'
     logging.info(f'{api_path=}')
+
     url = get_url(api_path)
     logging.info(f'{url=}')
+
     auth = HTTPBasicAuth(USERNAME, PASSWORD)
     logging.info(f'Got auth')
+
     headers = get_headers()
     logging.info(f'{headers=}')
+
     payload = get_payload()
     logging.info(f'{payload=}')
+
     method = "POST"
     logging.info(f'{method=}')
+
     logging.debug(f'Calling make_api_call')
     logging.debug(f'{url=}, {auth=}, {headers=}, {payload=}, {method=}')
     token = make_api_call(url, auth, headers, payload, method=method)
 
     return auth, token
+
+
+def get_domainid(token):
+    """
+    https://www.cisco.com/c/en/us/td/docs/security/firepower/621/api/REST/Firepower_Management_Center_REST_API_Quick_Start_Guide_621/objects_in_the_rest_api.html
+    UUID}
+    Many URLs contain one or more UUIDs which must be specified. Most URIs include the domain UUID, 
+    which can be found in the Authentication Token. When deleting or modifying an object, or requesting 
+    information about a specific object, the URI will end with the object UUID.
+    """
+    logging.info(f'Entered')
+    logging.info(f'{token.status.code=}')
+    if token.status_code == 204:
+        # print(f"Token response is 204")
+        domain_uuid = token.headers.get('DOMAIN_UUID')
+        logging.info(f'{domain_uuid=}')
+        if not domain_uuid:
+            msg = f"DOMAIN_UUID not found in the response headers."
+            logging.error(f'{msg}')
+            domain_uuid = None
+    else:
+        msg = f"Request failed with the status code: {token.status_code}"
+        logging.error(f'{msg}')
+        domain_uuid = None
+
+    return domain_uuid
         
 def main():
     global USERNAME, PASSWORD
     USERNAME, PASSWORD = load_credentials()
     logging.info(f'Retrieving creds, USERNAME: XXX{USERNAME[3:-1]}XXX, PASSWORD: XXX{PASSWORD[3:-3]} ')
+
     if not USERNAME or not PASSWORD:
         logging.error(f'Error retrieving username and password from .env file.')
         print("Please ensure USERNAME and PASSWORD are set in the .env file.")
@@ -130,8 +167,14 @@ def main():
 
     logging.debug(f'Calling get_token')
     auth, token = get_token()
-    print(auth)
-    print(token)
+    domain_uuid = get_domainid(token)
+    print(f"Done with Main - domain_uuid: {domain_uuid}")
+
+
+
+
+
+
 
 if __name__ == "__main__":
     start_logging('firepower.log')
