@@ -19,7 +19,7 @@ from common_tools import start_logging
 from requests.auth import HTTPBasicAuth
 from decouple import config
 
-def get_url(endpoint:str, url='firepower.ccm.com') -> str:
+def get_url(endpoint=None, resource_path=None, url='firepower.ccm.com') -> str:
     """Changes the default URL
     
     Paramaters:
@@ -28,17 +28,21 @@ def get_url(endpoint:str, url='firepower.ccm.com') -> str:
     logging.info(f'Entered')
     schema = 'https://'
     logging.info(f'{schema=}')
-    api_path = get_api_path()
-    full_url = schema + url + api_path + endpoint
+    if not resource_path:
+        resource_path = get_resource_path()
+
+    full_url = schema + url + resource_path + endpoint
+    input(f"{full_url=}")
     logging.info(f'{full_url=}')
 
     return full_url
 
-def get_api_path(api_path='/api/fmc_platform/v1') -> str:
+def get_resource_path(resource_path='/api/fmc_platform/v1') -> str:
     """Enables changing the API path"""
+    input(resource_path)
     logging.info(f'Entered')
-    logging.info(f"{api_path=}")
-    return api_path
+    logging.info(f"{resource_path=}")
+    return resource_path
 
 def get_headers():
     """Return the headers for the API request."""
@@ -56,8 +60,10 @@ def get_payload():
     logging.info(f'{payload=}')
     return payload
 
-def get_basic_auth():
+def get_basic_auth(USERNAME, PASSWORD):
     """Return HTTP Basic Auth using the global USERNAME and PASSWORD."""
+
+    
     # input(f"{USERNAME=}, {PASSWORD=}")
     logging.info(f'Entered')
     logging.info(f'Returning basic auth')
@@ -85,11 +91,21 @@ def make_api_call(url, auth, headers, payload, method="GET"):
 def load_credentials():
     """Load USERNAME and PASSWORD from the .env file."""
     logging.info(f'Entered')
+
+    global USERNAME, PASSWORD
+    # USERNAME, PASSWORD = load_credentials()
+    # logging.info(f'Retrieving creds, USERNAME: XXX{USERNAME[3:-1]}XXX, PASSWORD: XXX{PASSWORD[3:-3]} ')
+
+    # if not USERNAME or not PASSWORD:
+    #     logging.error(f'Error retrieving username and password from .env file.')
+    #     print("Please ensure USERNAME and PASSWORD are set in the .env file.")
+    #     return ''
     try:
         USERNAME = config('fmc_user')
         PASSWORD = config('fmc_password')
         logging.info(f'Got creds successfully {USERNAME=}, PASSWORD:XXX{PASSWORD[3:-3]}XXX')
         return USERNAME, PASSWORD
+    
     except Exception as e:
         logging.error(f'{e}')
         msg = "Error from 'load_credentials'"
@@ -101,7 +117,7 @@ def load_credentials():
         return return_dict
         
 
-def get_token():
+def get_token(USERNAME, PASSWORD):
     """Make an API call to Firepower to get a token"""
     logging.info(f'Entered')
 
@@ -154,16 +170,16 @@ def get_domainid(token):
         domain_uuid = None
 
     return domain_uuid
-        
-def main():
-    global USERNAME, PASSWORD
-    USERNAME, PASSWORD = load_credentials()
-    logging.info(f'Retrieving creds, USERNAME: XXX{USERNAME[3:-1]}XXX, PASSWORD: XXX{PASSWORD[3:-3]} ')
 
-    if not USERNAME or not PASSWORD:
-        logging.error(f'Error retrieving username and password from .env file.')
-        print("Please ensure USERNAME and PASSWORD are set in the .env file.")
-        return
+def main():
+    # global USERNAME, PASSWORD
+    # USERNAME, PASSWORD = load_credentials()
+    # logging.info(f'Retrieving creds, USERNAME: XXX{USERNAME[3:-1]}XXX, PASSWORD: XXX{PASSWORD[3:-3]} ')
+
+    # if not USERNAME or not PASSWORD:
+    #     logging.error(f'Error retrieving username and password from .env file.')
+    #     print("Please ensure USERNAME and PASSWORD are set in the .env file.")
+    #     return ''
 
     logging.debug(f'Calling get_token')
     auth, token = get_token()
